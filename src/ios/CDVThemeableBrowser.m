@@ -1335,12 +1335,13 @@
 }
 
 - (void) rePositionViews {
+    CGFloat statusbarHeight = [self getStatusBarOffset];
     CGFloat toolbarHeight = [self getFloatFromDict:_browserOptions.toolbar withKey:kThemeableBrowserPropHeight withDefault:TOOLBAR_DEF_HEIGHT];
-    CGFloat webviewOffset = _browserOptions.fullscreen ? 0.0 : toolbarHeight;
+    CGFloat webviewOffset = _browserOptions.fullscreen ? 0.0 : statusbarHeight + toolbarHeight;
 
     if ([_browserOptions.toolbarposition isEqualToString:kThemeableBrowserToolbarBarPositionTop]) {
         [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, webviewOffset, self.webView.frame.size.width, self.webView.frame.size.height)];
-        [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
+        [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, statusbarHeight, self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
     }
 
     CGFloat screenWidth = CGRectGetWidth(self.view.frame);
