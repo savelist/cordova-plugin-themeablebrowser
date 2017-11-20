@@ -1417,6 +1417,7 @@
     // loading url, start spinner
 
     self.addressLabel.text = NSLocalizedString(@"Loading...", nil);
+    self.titleLabel.text = [theWebView.request.URL host];
 
     [self.spinner startAnimating];
 
