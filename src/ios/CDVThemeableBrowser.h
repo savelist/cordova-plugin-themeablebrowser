@@ -87,13 +87,13 @@
     NSInteger _userAgentLockToken;
     UIStatusBarStyle _statusBarStyle;
     CDVThemeableBrowserOptions *_browserOptions;
-    
+
 #ifdef __CORDOVA_4_0_0
     CDVUIWebViewDelegate* _webViewDelegate;
 #else
     CDVWebViewDelegate* _webViewDelegate;
 #endif
-    
+
 }
 
 @property (nonatomic, strong) IBOutlet UIWebView* webView;
@@ -108,6 +108,10 @@
 
 @property (nonatomic, strong) NSArray* leftButtons;
 @property (nonatomic, strong) NSArray* rightButtons;
+
+@property (nonatomic, strong) IBOutlet UIProgressView* progressBar;
+@property (nonatomic, strong) NSTimer* progressBarTimer;
+@property (nonatomic) Boolean finishedLoading;
 
 @property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
 @property (nonatomic, weak) CDVThemeableBrowser* navigationDelegate;

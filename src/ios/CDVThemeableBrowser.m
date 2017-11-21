@@ -56,6 +56,7 @@
 
 #define    TOOLBAR_DEF_HEIGHT 44.0
 #define    LOCATIONBAR_HEIGHT 21.0
+#define    DIVIDERLINE_HEIGHT 0.55
 #define    FOOTER_HEIGHT ((TOOLBAR_HEIGHT) + (LOCATIONBAR_HEIGHT))
 
 #pragma mark CDVThemeableBrowser
@@ -886,10 +887,28 @@
         [self.toolbar addSubview:self.titleLabel];
     }
 
+    // Toolbar Divider Line
+    self.dividerLine = [[UIView alloc] initWithFrame:CGRectMake(0, self.toolbar.frame.size.height - DIVIDERLINE_HEIGHT, self.toolbar.frame.size.width, DIVIDERLINE_HEIGHT)];
+    self.dividerLine.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.3];
+    [self.toolbar addSubview:self.dividerLine];
+
+    // WebView Progress Bar
+    self.progressBar = [[UIProgressView alloc] init];
+    [self progressBarSetup];
+    [self.toolbar addSubview:self.progressBar];
+
     self.view.backgroundColor = [CDVThemeableBrowserViewController colorFromRGBA:[self getStringFromDict:_browserOptions.statusbar withKey:kThemeableBrowserPropColor withDefault:@"#ffffffff"]];
     [self.view addSubview:self.toolbar];
     // [self.view addSubview:self.addressLabel];
     // [self.view addSubview:self.spinner];
+}
+
+- (void) progressBarSetup {
+    CGRect progressBarShape = CGRectMake(0, self.toolbar.frame.size.height - self.progressBar.frame.size.height, self.toolbar.frame.size.width, 1);
+    [self.progressBar setFrame:progressBarShape];
+
+    self.progressBar.alpha = 1.0;
+    self.progressBar.tintColor = [UIColor colorWithRed:0.85 green:0.082 blue:0.082 alpha:1.0];
 }
 
 /**
@@ -1350,6 +1369,9 @@
         self.titleLabel.frame = CGRectMake(floorf((screenWidth - width) / 2.0f), 0, width, toolbarHeight);
     }
 
+    [self progressBarSetup];
+    [self.dividerLine setFrame:CGRectMake(0, self.toolbar.frame.size.height - DIVIDERLINE_HEIGHT, self.toolbar.frame.size.width, DIVIDERLINE_HEIGHT)];
+
     [self layoutButtons];
 }
 
@@ -1421,6 +1443,14 @@
 
     [self.spinner startAnimating];
 
+    // Progress Bar Reset
+    [self.progressBar setProgress:0];
+    self.progressBar.hidden = false;
+    self.finishedLoading = false;
+    // 0.01667 is roughly 1/60, so it will update at 60 FPS
+    // 0.05001 is 0.1667 * 3
+    self.progressBarTimer = [NSTimer scheduledTimerWithTimeInterval:0.05001 target:self selector:@selector(progressBarTimerCallback) userInfo:nil repeats:YES];
+
     return [self.navigationDelegate webViewDidStartLoad:theWebView];
 }
 
@@ -1441,6 +1471,7 @@
 {
     // update url, stop spinner, update back/forward
 
+    self.finishedLoading = true;
     self.addressLabel.text = [self.currentURL absoluteString];
     [self updateButton:theWebView];
 
@@ -1482,6 +1513,23 @@
     self.addressLabel.text = NSLocalizedString(@"Load Error", nil);
 
     [self.navigationDelegate webView:theWebView didFailLoadWithError:error];
+}
+
+- (void)progressBarTimerCallback {
+    if (self.finishedLoading) {
+        [self.progressBar setProgress:1.0 animated:true];
+
+        if (self.progressBar.progress >= 1) {
+            self.progressBar.hidden = true;
+            [self.progressBarTimer invalidate];
+        }
+
+        return;
+    }
+
+    if (self.progressBar.progress < 0.80) {
+        [self.progressBar setProgress:0.05 + self.progressBar.progress animated:true];
+    }
 }
 
 - (void)updateButton:(UIWebView*)theWebView
