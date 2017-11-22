@@ -25,7 +25,9 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
@@ -58,6 +60,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -107,6 +110,7 @@ public class ThemeableBrowser extends CordovaPlugin {
     private ThemeableBrowserDialog dialog;
     private WebView inAppWebView;
     private EditText edittext;
+    private ProgressBar progressBar;
     private CallbackContext callbackContext;
 
     /**
@@ -555,6 +559,7 @@ public class ThemeableBrowser extends CordovaPlugin {
                 // Toolbar layout
                 Toolbar toolbarDef = features.toolbar;
                 FrameLayout toolbar = new FrameLayout(cordova.getActivity());
+                toolbar.setElevation(dpToPixels(4));
                 toolbar.setBackgroundColor(hexStringToColor(
                         toolbarDef != null && toolbarDef.color != null
                                 ? toolbarDef.color : "#ffffffff"));
@@ -593,6 +598,12 @@ public class ThemeableBrowser extends CordovaPlugin {
                 rightButtonContainerParams.gravity = Gravity.RIGHT | Gravity.CENTER_VERTICAL;
                 rightButtonContainer.setLayoutParams(rightButtonContainerParams);
                 rightButtonContainer.setVerticalGravity(Gravity.CENTER_VERTICAL);
+
+                // Progress Bar Layout
+                FrameLayout.LayoutParams progressBarLayout = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, dpToPixels(2), Gravity.BOTTOM);
+                progressBar = new ProgressBar(cordova.getActivity(), null, android.R.attr.progressBarStyleHorizontal);
+                progressBar.getProgressDrawable().setColorFilter(Color.parseColor("#d91515"), PorterDuff.Mode.SRC_IN);
+                progressBar.setLayoutParams(progressBarLayout);
 
                 // Edit Text Box
                 edittext = new EditText(cordova.getActivity());
@@ -757,7 +768,7 @@ public class ThemeableBrowser extends CordovaPlugin {
                     ((LinearLayout.LayoutParams) inAppWebViewParams).weight = 1;
                 }
                 inAppWebView.setLayoutParams(inAppWebViewParams);
-                inAppWebView.setWebChromeClient(new InAppChromeClient(thatWebView));
+                inAppWebView.setWebChromeClient(new AppBrowser(thatWebView));
                 WebViewClient client = new ThemeableBrowserClient(thatWebView, new PageLoadListener() {
                     @Override
                     public void onPageFinished(String url, boolean canGoBack, boolean canGoForward) {
@@ -905,6 +916,7 @@ public class ThemeableBrowser extends CordovaPlugin {
                 // Don't show address bar.
                 // toolbar.addView(edittext);
                 toolbar.addView(rightButtonContainer);
+                toolbar.addView(progressBar);
 
                 if (title != null) {
                     int titleMargin = Math.max(
@@ -1151,6 +1163,14 @@ public class ThemeableBrowser extends CordovaPlugin {
                             description));
         }
         return result;
+    }
+
+    private void showProgressBar() {
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressBar() {
+        progressBar.setVisibility(View.GONE);
     }
 
     /**
@@ -1443,5 +1463,24 @@ public class ThemeableBrowser extends CordovaPlugin {
         public String color;
         public String staticText;
         public boolean showPageTitle;
+    }
+
+    private class AppBrowser extends InAppChromeClient {
+        public AppBrowser(CordovaWebView webView) {
+            super(webView);
+        }
+
+        public void onProgressChanged(WebView view, int progress) {
+            progressBar.setProgress(progress);
+
+            if (progress >= 0) {
+                showProgressBar();
+            }
+
+            if (progress >= 100) {
+                hideProgressBar();
+            }
+
+        }
     }
 }
