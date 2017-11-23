@@ -109,6 +109,7 @@
 @property (nonatomic, strong) NSArray* leftButtons;
 @property (nonatomic, strong) NSArray* rightButtons;
 
+@property (nonatomic, strong) IBOutlet UIView* dividerLine;
 @property (nonatomic, strong) IBOutlet UIProgressView* progressBar;
 @property (nonatomic, strong) NSTimer* progressBarTimer;
 @property (nonatomic) Boolean finishedLoading;
@@ -136,4 +137,3 @@
 @property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
 
 @end
-
